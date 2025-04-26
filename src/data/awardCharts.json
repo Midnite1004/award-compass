@@ -1,0 +1,22 @@
+{
+  "Virgin Atlantic Flying Club": {
+    "ANA": {
+      "LHR-HND": {
+        "business": 45000,
+        "first": 60000
+      },
+      "Europe-Japan": {
+        "business": 45000,
+        "first": 60000
+      }
+    }
+  },
+  "Alaska MileagePlan": {
+    "Cathay Pacific": {
+      "US-HKG": {
+        "business": 50000,
+        "first": 70000
+      }
+    }
+  }
+}
