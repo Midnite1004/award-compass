@@ -11,10 +11,8 @@ import {
   FaCheck,
   FaTimes,
   FaExclamationTriangle,
-  FaCalendarAlt, // Used in guidance
-  FaSearch, // Used in guidance
-  FaPlane,
-  FaMoneyBillWave
+  FaCalendarAlt,
+  FaSearch
 } from "react-icons/fa";
 
 // Import utility functions for formatting and rating
@@ -28,8 +26,6 @@ import { formatValueWithRating, formatCurrency, formatPoints } from '../utils/re
 const AIInsights = ({
   redemptionData,
   centsPerPoint,
-  totalPoints,
-  cashRequired,
   retailValue
 }) => {
   const [activeTab, setActiveTab] = useState("analysis");
@@ -52,21 +48,18 @@ const AIInsights = ({
   const {
     pointsRequired,
     taxesFees,
-    savings,
-    type,
     isSweetSpot,
     sweetSpotDetails
   } = redemptionData;
 
-   // Get value rating using the utility function
+  // Get value rating using the utility function
   const valueRating = formatValueWithRating(centsPerPoint);
 
   // Generate AI analysis summary and recommendation
-  const analysis = generateAnalysisSummary(redemptionData, centsPerPoint, valueRating); // Uses pre-calculated pros/cons
+  const analysis = generateAnalysisSummary(redemptionData, centsPerPoint, valueRating);
 
   // Generate booking guidance using the redemption data
-  const bookingGuidance = generateBookingGuidance(redemptionData); // Uses sweetSpotDetails if available
-
+  const bookingGuidance = generateBookingGuidance(redemptionData);
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
@@ -79,35 +72,34 @@ const AIInsights = ({
       {/* Value summary card */}
       <div className="p-4">
         <div className="bg-blue-50 rounded-lg p-3 flex items-start">
-          <div className="bg-white rounded-full p-2 mr-3 shadow-sm flex-shrink-0"> {/* Added flex-shrink */}
+          <div className="bg-white rounded-full p-2 mr-3 shadow-sm flex-shrink-0">
             <FaChartLine className={`${valueRating.colorClass} text-lg`} />
           </div>
           <div>
             <div className="flex items-center">
               <span className={`font-bold text-lg ${valueRating.colorClass}`}>
-                {centsPerPoint.toFixed(1)}¢/pt {/* Use centsPerPoint */}
+                {centsPerPoint.toFixed(1)}&cent;/pt
               </span>
               <span className="ml-2 text-sm font-medium px-2 py-1 rounded bg-gray-100 text-gray-700">
-                {valueRating.rating.charAt(0).toUpperCase() + valueRating.rating.slice(1)} {/* Capitalized label */}
+                {valueRating.rating.charAt(0).toUpperCase() + valueRating.rating.slice(1)}
               </span>
               {/* Tooltip for CPP Guide */}
               <div className="ml-2 relative group">
-                <FaInfoCircle className="text-blue-500 cursor-pointer text-sm" /> {/* Adjusted size */}
-                <div className="absolute z-10 hidden group-hover:block bg-white border border-gray-200 rounded-lg shadow-lg p-3 w-64 text-xs right-0 transform translate-x-1/4 -translate-y-full bottom-full"> {/* Adjusted positioning and size */}
+                <FaInfoCircle className="text-blue-500 cursor-pointer text-sm" />
+                <div className="absolute z-10 hidden group-hover:block bg-white border border-gray-200 rounded-lg shadow-lg p-3 w-64 text-xs right-0 transform translate-x-1/4 -translate-y-full bottom-full">
                   <h4 className="font-medium text-gray-800 mb-2">Cents Per Point Guide</h4>
                   <div className="space-y-1">
-                    {/* Use thresholds from formatValueWithRating logic */}
-                    <div className="flex justify-between text-xs"><span className="text-red-600">Poor:</span><span>0.3¢-0.59¢</span></div>
-                    <div className="flex justify-between text-xs"><span className="text-yellow-600">Average:</span><span>0.6¢-0.99¢</span></div>
-                    <div className="flex justify-between text-xs"><span className="text-blue-600">Good:</span><span>1.0¢-1.49¢</span></div>
-                    <div className="flex justify-between text-xs"><span className="text-green-600">Great:</span><span>1.5¢-2.49¢</span></div>
-                    <div className="flex justify-between text-xs"><span className="text-purple-600">Excellent:</span><span>2.5¢+</span></div>
+                    <div className="flex justify-between text-xs"><span className="text-red-600">Poor:</span><span>0.3&cent;-0.59&cent;</span></div>
+                    <div className="flex justify-between text-xs"><span className="text-yellow-600">Average:</span><span>0.6&cent;-0.99&cent;</span></div>
+                    <div className="flex justify-between text-xs"><span className="text-blue-600">Good:</span><span>1.0&cent;-1.49&cent;</span></div>
+                    <div className="flex justify-between text-xs"><span className="text-green-600">Great:</span><span>1.5&cent;-2.49&cent;</span></div>
+                    <div className="flex justify-between text-xs"><span className="text-purple-600">Excellent:</span><span>2.5&cent;+</span></div>
                   </div>
                   <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 rotate-45 w-2 h-2 bg-white border-r border-b border-gray-200"></div>
                 </div>
               </div>
             </div>
-            <p className="text-sm text-gray-700 mt-1">{analysis.summary}</p> {/* Use summary from analysis */}
+            <p className="text-sm text-gray-700 mt-1">{analysis.summary}</p>
           </div>
         </div>
 
@@ -198,7 +190,7 @@ const AIInsights = ({
                               <div className="text-right font-medium text-gray-900">{formatPoints(pointsRequired)}</div> {/* Use formatPoints */}
 
                               <div className="border-t border-gray-200 pt-1 mt-1 text-gray-600 font-medium">Value Per Point:</div> {/* Added font-medium */}
-                              <div className="border-t border-gray-200 pt-1 mt-1 text-right font-bold text-gray-900">{centsPerPoint.toFixed(1)}¢</div> {/* Bold the value */}
+                              <div className="border-t border-gray-200 pt-1 mt-1 text-right font-bold text-gray-900">{centsPerPoint.toFixed(1)}&cent;</div> {/* Bold the value */}
                           </div>
                       </div>
                   </div>
@@ -231,7 +223,7 @@ const AIInsights = ({
                        ))}
                      </ol>
                  ) : (
-                     <p className="text-sm text-gray-600">Specific booking steps not available. Check the program's website.</p>
+                     <p className="text-sm text-gray-600">Don&apos;t see your program? Contact us to add it.</p>
                  )}
               </div>
 
@@ -277,7 +269,7 @@ const AIInsights = ({
                               ))}
                            </ul>
                         ) : (
-                             <p className="text-sm text-gray-600">Reasons for this sweet spot not available.</p>
+                             <p className="text-sm text-gray-600">You&apos;re getting great value with this redemption.</p>
                         )}
                    </div>
 

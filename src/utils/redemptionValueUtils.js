@@ -211,25 +211,30 @@ export function formatCurrency(value, options = {}) {
         return 'N/A';
     }
 
+    // Handle negative values
+    if (value < 0) {
+        return `-${formatCurrency(Math.abs(value), options)}`;
+    }
+
     const {
-      currency = 'USD',
-      minimumFractionDigits = 0, // Default to 0 for dollars as shown in UI examples
-      maximumFractionDigits = 0
+        currency = 'USD',
+        minimumFractionDigits = 0,
+        maximumFractionDigits = 0,
+        showCents = false // New option to control cents display
     } = options;
 
     try {
         // Use Intl.NumberFormat for reliable currency formatting
         return new Intl.NumberFormat('en-US', {
-          style: 'currency',
-          currency: currency,
-           // Only apply min/max fractions if explicitly requested, otherwise use default currency formatting
-           ...(options.minimumFractionDigits !== undefined && { minimumFractionDigits }),
-           ...(options.maximumFractionDigits !== undefined && { maximumFractionDigits })
+            style: 'currency',
+            currency: currency,
+            minimumFractionDigits: showCents ? 2 : minimumFractionDigits,
+            maximumFractionDigits: showCents ? 2 : maximumFractionDigits
         }).format(value);
     } catch (error) {
         console.error('Error formatting currency:', value, options, error);
         // Fallback to a simple fixed-decimal format
-        return `$${value?.toFixed(2) || 'N/A'}`; // Use optional chaining in fallback
+        return `$${value.toFixed(2)}`;
     }
 }
 

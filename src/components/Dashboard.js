@@ -14,17 +14,24 @@ const getExpiryWarningIcon = (dateStr) => {
     if (isNaN(expiryDate.getTime())) return null; // Invalid date
     
     const today = new Date();
-    const thirtyDaysFromNow = new Date();
+    today.setHours(0, 0, 0, 0); // Set to start of day for consistent comparison
+    
+    const thirtyDaysFromNow = new Date(today);
     thirtyDaysFromNow.setDate(today.getDate() + 30);
+    thirtyDaysFromNow.setHours(0, 0, 0, 0);
 
     if (expiryDate <= thirtyDaysFromNow && expiryDate >= today) {
       return <FaExclamationTriangle className="text-orange-500" title="Expires within 30 days" />;
     }
-    // Add more conditions here if needed (e.g., for expired points)
+    
+    // Add warning for expired points
+    if (expiryDate < today) {
+      return <FaExclamationTriangle className="text-red-500" title="Points have expired" />;
+    }
   } catch (e) {
     console.error("Error parsing date for warning icon:", dateStr, e);
   }
-  return null; // No warning icon if not expiring soon or error
+  return null;
 };
 
 export default function Dashboard() {

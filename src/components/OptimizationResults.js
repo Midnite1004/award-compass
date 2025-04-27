@@ -367,7 +367,7 @@ const OptimizationResults = ({ redemptionData, alternatives }) => {
               {showDetailedGuide && (
                 <div className="p-4 border-t border-yellow-200">
                   <ol className="list-decimal pl-5 space-y-2">
-                    <li>Search for ANA award availability using United.com (don't log in)</li>
+                    <li>Search for ANA award availability using United.com (don&apos;t log in)</li>
                     <li>Note the dates and flight numbers where "Saver" awards are available</li>
                     <li>Call Virgin Atlantic at 1-800-365-9500</li>
                     <li>Request to book an ANA partner award with your Flying Club miles</li>

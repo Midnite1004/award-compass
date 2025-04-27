@@ -381,7 +381,7 @@ export default function ConnectAccounts() {
 
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto px-4 py-8">
       <h2 className="text-2xl font-bold text-gray-800">Connect Loyalty Programs</h2>
 
       {/* One-Click Import Section */}
@@ -485,44 +485,31 @@ export default function ConnectAccounts() {
             <div className="space-y-3">
               {/* Program Type Selection */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Program Type</label>
-                <div className="grid grid-cols-3 gap-2">
-                  <button
-                    type="button" // Added type="button"
-                    className={`p-2 rounded-lg flex justify-center items-center ${selectedType === 'airline' ? 'bg-blue-100 border-blue-300 border text-blue-700' : 'bg-white border border-gray-300 text-gray-700'}`}
-                    onClick={() => selectType('airline')}
-                  >
-                    <FaPlane className={`mr-2 ${selectedType === 'airline' ? 'text-blue-600' : 'text-gray-500'}`} />
-                    Airline
-                  </button>
-                  <button
-                    type="button" // Added type="button"
-                    className={`p-2 rounded-lg flex justify-center items-center ${selectedType === 'hotel' ? 'bg-blue-100 border-blue-300 border text-blue-700' : 'bg-white border border-gray-300 text-gray-700'}`}
-                    onClick={() => selectType('hotel')}
-                  >
-                    <FaHotel className={`mr-2 ${selectedType === 'hotel' ? 'text-blue-600' : 'text-gray-500'}`} />
-                    Hotel
-                  </button>
-                  <button
-                    type="button" // Added type="button"
-                    className={`p-2 rounded-lg flex justify-center items-center ${selectedType === 'card' ? 'bg-blue-100 border-blue-300 border text-blue-700' : 'bg-white border border-gray-300 text-gray-700'}`}
-                    onClick={() => selectType('card')}
-                  >
-                    <FaCreditCard className={`mr-2 ${selectedType === 'card' ? 'text-blue-600' : 'text-gray-500'}`} />
-                    Credit Card
-                  </button>
-                </div>
+                <label htmlFor="programType" className="block text-sm font-medium text-gray-700 mb-1">Program Type</label>
+                <select
+                  id="programType"
+                  name="programType"
+                  className="border rounded-lg p-2 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  value={form.type}
+                  onChange={(e) => setForm({...form, type: e.target.value})}
+                >
+                  <option value="airline">Airline</option>
+                  <option value="hotel">Hotel</option>
+                  <option value="card">Credit Card</option>
+                </select>
               </div>
 
               {/* Program Name Autocomplete */}
               <div className="relative">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Program Name</label>
+                <label htmlFor="programName" className="block text-sm font-medium text-gray-700 mb-1">Program Name</label>
                 <div className="flex border rounded-md overflow-hidden focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
                   <div className="bg-gray-100 p-2 flex items-center">
                     <FaSearch className="text-gray-500" />
                   </div>
                   <input
-                    type="text" // Changed type from "input"
+                    type="text"
+                    id="programName"
+                    name="programName"
                     className="flex-1 p-2 border-0 focus:outline-none focus:ring-0"
                     placeholder={`Search for ${selectedType} programs...`}
                     value={searchTerm}
@@ -566,24 +553,26 @@ export default function ConnectAccounts() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Balance</label>
+                <label htmlFor="programBalance" className="block text-sm font-medium text-gray-700 mb-1">Balance</label>
                 <input
                   type="number"
+                  id="programBalance"
+                  name="programBalance"
                   className="border rounded-lg p-2 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Points balance"
                   value={form.balance}
-                  onChange={e => setForm({...form, balance: +e.target.value})}
-                  min="0" // Added min attribute
+                  onChange={(e) => setForm({...form, balance: parseInt(e.target.value) || 0})}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Expiration Date (optional)</label>
+                <label htmlFor="programExpiry" className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
                 <input
                   type="date"
+                  id="programExpiry"
+                  name="programExpiry"
                   className="border rounded-lg p-2 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   value={form.expiry}
-                  onChange={e => setForm({...form, expiry: e.target.value})}
+                  onChange={(e) => setForm({...form, expiry: e.target.value})}
                 />
               </div>
 

@@ -366,7 +366,7 @@ export default function SearchRedemption() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="container mx-auto px-4 py-8">
       <div className="bg-white rounded-lg shadow-md border border-gray-100 overflow-hidden">
         <div className="p-4 bg-blue-600 text-white">
           <h2 className="text-xl font-semibold">Find Your Best Redemption</h2>
@@ -407,22 +407,25 @@ export default function SearchRedemption() {
             {searchType === 'flight' && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Origin</label>
-                  {/* Using react-select for better dropdown experience */}
+                  <label htmlFor="origin" className="block text-sm font-medium text-gray-700 mb-1">Origin</label>
                   <Select
+                    id="origin"
+                    name="origin"
                     options={airportOptions}
                     onChange={setOrigin}
                     placeholder="Select origin airport"
                     value={origin}
                     className="react-select-container"
                     classNamePrefix="react-select"
-                    isClearable // Allow clearing the selection
-                    isSearchable // Allow typing to search
+                    isClearable
+                    isSearchable
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Destination</label>
-                   <Select
+                  <label htmlFor="destination" className="block text-sm font-medium text-gray-700 mb-1">Destination</label>
+                  <Select
+                    id="destination"
+                    name="destination"
                     options={airportOptions}
                     onChange={setDestination}
                     placeholder="Select destination airport"
@@ -497,8 +500,10 @@ export default function SearchRedemption() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {searchType === 'flight' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Cabin Class</label>
+                  <label htmlFor="cabin" className="block text-sm font-medium text-gray-700 mb-1">Cabin Class</label>
                   <Select
+                    id="cabin"
+                    name="cabin"
                     options={cabinOptions}
                     onChange={setCabin}
                     value={cabin}
