@@ -2,13 +2,11 @@ import React, { useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { 
   FaArrowLeft, FaStar, FaInfoCircle, FaExclamationTriangle, 
-  FaSearch, FaPlane, FaCheck, FaTimes, FaChevronDown, FaChevronUp,
-  FaLightbulb, FaArrowRight
+  FaSearch, FaPlane, FaChevronDown, FaChevronUp,
+  FaLightbulb
 } from 'react-icons/fa';
-import AIInsights from './AIInsights';
-import SpecialRedemptionGuide from './SpecialRedemptionGuide';
 
-const OptimizationResults = ({ redemptionData, alternatives }) => {
+const OptimizationResults = () => {
   const { state } = useLocation();
   const [showDetailedGuide, setShowDetailedGuide] = useState(false);
   const [showValueTooltip, setShowValueTooltip] = useState(false);
@@ -286,6 +284,16 @@ const OptimizationResults = ({ redemptionData, alternatives }) => {
                       className="ml-1 text-blue-500 hover:text-blue-700"
                       onMouseEnter={() => setShowValueTooltip(true)}
                       onMouseLeave={() => setShowValueTooltip(false)}
+                      onFocus={() => setShowValueTooltip(true)}
+                      onBlur={() => setShowValueTooltip(false)}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          setShowValueTooltip(!showValueTooltip);
+                        }
+                      }}
+                      aria-label="Show value per point guide"
+                      tabIndex={0}
                     >
                       <FaInfoCircle />
                     </button>
@@ -356,6 +364,14 @@ const OptimizationResults = ({ redemptionData, alternatives }) => {
               <button 
                 className="w-full p-4 flex items-center justify-between"
                 onClick={() => setShowDetailedGuide(!showDetailedGuide)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setShowDetailedGuide(!showDetailedGuide);
+                  }
+                }}
+                aria-expanded={showDetailedGuide}
+                tabIndex={0}
               >
                 <div className="flex items-center">
                   <FaStar className="text-yellow-500 mr-2" />
@@ -368,7 +384,7 @@ const OptimizationResults = ({ redemptionData, alternatives }) => {
                 <div className="p-4 border-t border-yellow-200">
                   <ol className="list-decimal pl-5 space-y-2">
                     <li>Search for ANA award availability using United.com (don&apos;t log in)</li>
-                    <li>Note the dates and flight numbers where "Saver" awards are available</li>
+                    <li>Note the dates and flight numbers where &quot;Saver&quot; awards are available</li>
                     <li>Call Virgin Atlantic at 1-800-365-9500</li>
                     <li>Request to book an ANA partner award with your Flying Club miles</li>
                     <li>Provide the agent with your preferred dates and flight numbers</li>
@@ -397,10 +413,15 @@ const OptimizationResults = ({ redemptionData, alternatives }) => {
             <div className="p-4 border-b border-gray-200">
               <h3 className="text-lg font-bold">Alternative Options</h3>
             </div>
-            <div>
+            <div role="list" aria-label="Alternative redemption options">
               {Array.isArray(alternativeOptions) && alternativeOptions.length > 0 ? (
                 alternativeOptions.map((alt, index) => (
-                  <div key={index} className="p-4 border-b border-gray-100">
+                  <div 
+                    key={index} 
+                    className="p-4 border-b border-gray-100"
+                    role="listitem"
+                    aria-label={`Alternative option: ${alt.program}`}
+                  >
                     <div className="flex justify-between items-center mb-2">
                       <h4 className="font-semibold">
                         {alt.program?.includes('American') ? 'All American Airlines' : alt.program}
@@ -439,16 +460,18 @@ const OptimizationResults = ({ redemptionData, alternatives }) => {
                         <div className="bg-red-50 p-3 rounded-lg">
                           <div className="text-sm font-medium text-red-800">Cons:</div>
                           <div className="text-sm text-red-700">
-                            {alt.centsPerPoint < best?.centsPerPoint ? "Uses more total points, Lower cents per point value" : alt.cons[0]}
+                            {alt.centsPerPoint < best?.centsPerPoint ? "Lower cents per point value" : 
+                             alt.pointsRequired > best?.pointsRequired ? "Requires more points" : 
+                             "May have limited availability"}
                           </div>
                         </div>
                       ) : (
                         <div className="bg-red-50 p-3 rounded-lg">
                           <div className="text-sm font-medium text-red-800">Cons:</div>
                           <div className="text-sm text-red-700">
-                            {alt.centsPerPoint < best?.centsPerPoint ? "Lower cents per point value" : 
-                             alt.pointsRequired > best?.pointsRequired ? "Requires more points" : 
-                             "May have limited availability"}
+                            {alt.fees < best?.fees ? "Lower taxes and fees" : 
+                             alt.pointsRequired < best?.pointsRequired ? "Uses fewer points" : 
+                             "Alternative program option"}
                           </div>
                         </div>
                       )}

@@ -488,20 +488,20 @@ export default function ConnectAccounts() {
                 <label htmlFor="programType" className="block text-sm font-medium text-gray-700 mb-1">Program Type</label>
                 <select
                   id="programType"
-                  name="programType"
-                  className="border rounded-lg p-2 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="border rounded-md p-2 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   value={form.type}
                   onChange={(e) => setForm({...form, type: e.target.value})}
                 >
-                  <option value="airline">Airline</option>
-                  <option value="hotel">Hotel</option>
-                  <option value="card">Credit Card</option>
+                  <option value="">Select a program type</option>
+                  <option value="airline">Airline Miles</option>
+                  <option value="hotel">Hotel Points</option>
+                  <option value="credit_card">Credit Card Points</option>
                 </select>
               </div>
 
               {/* Program Name Autocomplete */}
               <div className="relative">
-                <label htmlFor="programName" className="block text-sm font-medium text-gray-700 mb-1">Program Name</label>
+                <label htmlFor="programName" className="block text-sm font-medium text-gray-700 mt-4 mb-1">Program Name</label>
                 <div className="flex border rounded-md overflow-hidden focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
                   <div className="bg-gray-100 p-2 flex items-center">
                     <FaSearch className="text-gray-500" />
@@ -511,7 +511,7 @@ export default function ConnectAccounts() {
                     id="programName"
                     name="programName"
                     className="flex-1 p-2 border-0 focus:outline-none focus:ring-0"
-                    placeholder={`Search for ${selectedType} programs...`}
+                    placeholder="Start typing to search for programs..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     onFocus={() => {
@@ -665,7 +665,7 @@ export default function ConnectAccounts() {
           </div>
         ) : (
           <div className="text-center py-4 text-gray-500">
-            No programs added yet. Click "Add Program" to get started.
+            No programs added yet. Click &quot;Add Program&quot; to get started.
           </div>
         )}
       </div>

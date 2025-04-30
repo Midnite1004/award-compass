@@ -4,9 +4,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Select from 'react-select'; // Using react-select for better airport dropdown
 import { useNavigate } from 'react-router-dom';
 import {
-  FaPlane, FaCalendarAlt, FaSpinner,
-  FaInfoCircle, FaFilter, FaChevronDown, FaChevronUp, FaSearch
-} from 'react-icons/fa'; // Added FaSearch
+  FaPlane, FaSpinner,
+  FaInfoCircle, FaFilter, FaChevronDown, FaChevronUp, FaSearch, FaHotel
+} from 'react-icons/fa'; // Added FaSearch and FaHotel
 
 // Import airport data (assuming airports.json is in public/)
 // Need to manually fetch or import if not using Webpack's file-loader for JSON
@@ -77,12 +77,12 @@ export default function SearchRedemption() {
   const [preferredAirlines, setPreferredAirlines] = useState([]); // Preference (array of {value, label} objects from react-select)
   const [avoidedAirlines, setAvoidedAirlines] = useState([]); // Preference (array of {value, label} objects from react-select)
   const [travelGoal, setTravelGoal] = useState(''); // Preference
+  const [errorFields, setErrorFields] = useState([]);
 
   const getUserLocation = useCallback(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          const { latitude, longitude } = position.coords;
           const nearestAirport = airportOptions.find(a => a.coordinates && typeof a.coordinates.lat === 'number' && typeof a.coordinates.lon === 'number');
           if (nearestAirport) {
             setOrigin(nearestAirport); // Set the airport object
@@ -211,49 +211,42 @@ export default function SearchRedemption() {
     } else {
       setPrograms(savedPrograms);
     }
-  }, []); // Dependency array is now empty
+  }, []);
 
 
-  // Validation logic before search
+  // Add keyboard navigation for the search type buttons
+  const handleSearchTypeKeyPress = (e, type) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      setSearchType(type);
+    }
+  };
+
+  // Enhance form validation with field-specific errors
   const validateForm = () => {
+    const errors = [];
+    
     if (searchType === 'flight') {
-        if (!origin || !destination) {
-          setValidationError('Please select both origin and destination airports.');
-          return false;
-        }
-        if (!departDate) {
-          setValidationError('Please select a departure date.');
-          return false;
-        }
-         // Return date is optional for flights (one-way) but validate if provided
-        if (returnDate && new Date(departDate) > new Date(returnDate)) {
-          setValidationError('Return date must be after departure date.');
-          return false;
-        }
+      if (!origin) errors.push('origin');
+      if (!destination) errors.push('destination');
+      if (!departDate) errors.push('depart-date');
+      if (!cabin) errors.push('cabin-select');
+    } else {
+      if (!destination) errors.push('destination');
+      if (!departDate) errors.push('depart-date');
+      if (!returnDate) errors.push('return-date');
     }
-
-    // Minimal hotel validation for now
-    if (searchType === 'hotel') {
-        if (!destination) {
-          setValidationError('Please select a destination city/area.');
-          return false;
-        }
-        if (!departDate) {
-           setValidationError('Please select a check-in date.');
-           return false;
-        }
-         if (!returnDate || new Date(departDate) >= new Date(returnDate)) {
-             setValidationError('Please select a check-out date after the check-in date.');
-             return false;
-         }
+    
+    if (errors.length > 0) {
+      setErrorFields(errors);
+      setValidationError(`Please fill in all required fields: ${errors.join(', ')}`);
+      // Focus the first error field
+      const firstError = document.getElementById(errors[0]);
+      if (firstError) firstError.focus();
+      return false;
     }
-
-    if(programs.length === 0) {
-         setValidationError('Please add your loyalty programs to search.');
-         return false;
-    }
-
-    // Clear validation error if everything is okay
+    
+    setErrorFields([]);
     setValidationError('');
     return true;
   };
@@ -366,326 +359,327 @@ export default function SearchRedemption() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="bg-white rounded-lg shadow-md border border-gray-100 overflow-hidden">
-        <div className="p-4 bg-blue-600 text-white">
-          <h2 className="text-xl font-semibold">Find Your Best Redemption</h2>
-          <p className="text-blue-100">We'll analyze your points and find the best value option</p>
-        </div>
-
-        <div className="p-6">
-          {/* Search Type Tabs - Keeping for potential future Hotel logic */}
-          <div className="flex mb-6 border-b">
-            <button
-              type="button" // Added type="button"
-              className={`pb-2 px-4 flex items-center ${searchType === 'flight' ? 'border-b-2 border-blue-600 text-blue-600 font-medium' : 'text-gray-500 hover:text-gray-700'}`}
-              onClick={() => setSearchType('flight')}
-            >
-              <FaPlane className="mr-2" /> Flight Redemption
-            </button>
-             {/* Hotel search is minimal/placeholder in calculations - uncomment if needed later */}
-             {/*
-            <button
-               type="button"
-               className={`pb-2 px-4 flex items-center ${searchType === 'hotel' ? 'border-b-2 border-blue-600 text-blue-600 font-medium' : 'text-gray-500 hover:text-gray-700'}`}
-              onClick={() => setSearchType('hotel')}
-            >
-              <FaHotel className="mr-2" /> Hotel Redemption
-            </button>
-              */}
+    <form onSubmit={handleSubmit}>
+      <div role="main" className="search-redemption-container">
+        <div className="bg-white rounded-lg shadow-md border border-gray-100 overflow-hidden">
+          <div className="p-4 bg-blue-600 text-white">
+            <h2 className="text-xl font-semibold">Find Your Best Redemption</h2>
+            <p className="text-blue-100">We&apos;ll analyze your points and find the best value option</p>
           </div>
 
-          {/* Error message - Display at the top if validation fails */}
-          {validationError && (
-            <div className="bg-red-50 border border-red-200 p-3 rounded-md text-red-700 text-sm mb-4">
-              <span className="font-medium">Error:</span> {validationError}
+          <div className="p-6">
+            <div className="search-type-buttons" role="radiogroup" aria-label="Search type">
+              <button
+                type="button"
+                onClick={() => setSearchType('flight')}
+                onKeyPress={(e) => handleSearchTypeKeyPress(e, 'flight')}
+                className={`search-type-button ${searchType === 'flight' ? 'active' : ''}`}
+                aria-pressed={searchType === 'flight'}
+                aria-label="Search for flights"
+                tabIndex={0}
+              >
+                <FaPlane aria-hidden="true" />
+                Flight
+              </button>
+              <button
+                type="button"
+                onClick={() => setSearchType('hotel')}
+                onKeyPress={(e) => handleSearchTypeKeyPress(e, 'hotel')}
+                className={`search-type-button ${searchType === 'hotel' ? 'active' : ''}`}
+                aria-pressed={searchType === 'hotel'}
+                aria-label="Search for hotels"
+                tabIndex={0}
+              >
+                <FaHotel aria-hidden="true" />
+                Hotel
+              </button>
             </div>
-          )}
 
-          <form onSubmit={handleSubmit} className="space-y-4"> {/* Added space-y */}
-            {/* Origin & Destination / Hotel Location */}
-            {searchType === 'flight' && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="origin" className="block text-sm font-medium text-gray-700 mb-1">Origin</label>
+            <div className="search-form" role="form" aria-label={`${searchType} search form`}>
+              <div className="search-fields">
+                <div className="field-group">
+                  <label id="origin-label" htmlFor="origin-select">
+                    From
+                    <span className="required-indicator" aria-hidden="true">*</span>
+                    <span className="sr-only">Required</span>
+                  </label>
                   <Select
-                    id="origin"
-                    name="origin"
-                    options={airportOptions}
-                    onChange={setOrigin}
-                    placeholder="Select origin airport"
+                    id="origin-select"
+                    aria-labelledby="origin-label"
                     value={origin}
-                    className="react-select-container"
-                    classNamePrefix="react-select"
-                    isClearable
-                    isSearchable
-                  />
-                </div>
-                <div>
-                  <label htmlFor="destination" className="block text-sm font-medium text-gray-700 mb-1">Destination</label>
-                  <Select
-                    id="destination"
-                    name="destination"
+                    onChange={setOrigin}
                     options={airportOptions}
-                    onChange={setDestination}
-                    placeholder="Select destination airport"
-                    value={destination}
-                    className="react-select-container"
-                    classNamePrefix="react-select"
-                    isClearable
+                    placeholder="Select departure city"
                     isSearchable
+                    className={`react-select-container ${errorFields.includes('origin') ? 'error' : ''}`}
+                    classNamePrefix="react-select"
+                    aria-invalid={errorFields.includes('origin')}
+                    aria-describedby={errorFields.includes('origin') ? 'origin-error' : undefined}
                   />
+                  {errorFields.includes('origin') && (
+                    <div id="origin-error" className="error-message" role="alert">
+                      Please select a departure city
+                    </div>
+                  )}
                 </div>
-              </div>
-            )}
 
-            {/* Hotel Location - Placeholder UI - uncomment if needed */}
-            {/*
-            {searchType === 'hotel' && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Destination City/Area</label>
-                 <Select
-                  options={airportOptions} // Using airport list as city list placeholder
-                  onChange={setDestination}
-                  placeholder="Select destination city"
-                  value={destination}
-                  className="react-select-container"
-                  classNamePrefix="react-select"
-                  isClearable
-                  isSearchable
-                 />
-              </div>
-            )}
-            */}
-
-            {/* Dates */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {searchType === 'flight' ? 'Departure Date' : 'Check-in Date'}
-                </label>
-                <div className="flex border rounded-md overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500"> {/* Added focus styles */}
-                  <div className="bg-gray-100 p-2 flex items-center">
-                    <FaCalendarAlt className="text-gray-500" />
-                  </div>
-                  <input
-                    type="date"
-                    className="flex-1 p-2 border-0 focus:outline-none focus:ring-0"
-                    value={departDate}
-                    onChange={e => setDepartDate(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {searchType === 'flight' ? 'Return Date (Optional)' : 'Check-out Date'}
-                </label>
-                <div className="flex border rounded-md overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500"> {/* Added focus styles */}
-                  <div className="bg-gray-100 p-2 flex items-center">
-                    <FaCalendarAlt className="text-gray-500" />
-                  </div>
-                  <input
-                    type="date"
-                    className="flex-1 p-2 border-0 focus:outline-none focus:ring-0"
-                    value={returnDate}
-                    onChange={e => setReturnDate(e.target.value)}
-                    required={searchType === 'hotel'} // Return date required for hotel stay length
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Additional Options (Cabin & Passengers) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {searchType === 'flight' && (
-                <div>
-                  <label htmlFor="cabin" className="block text-sm font-medium text-gray-700 mb-1">Cabin Class</label>
+                <div className="field-group">
+                  <label id="destination-label" htmlFor="destination-select">To</label>
                   <Select
-                    id="cabin"
-                    name="cabin"
-                    options={cabinOptions}
-                    onChange={setCabin}
-                    value={cabin}
+                    id="destination-select"
+                    aria-labelledby="destination-label"
+                    value={destination}
+                    onChange={setDestination}
+                    options={airportOptions}
+                    placeholder="Select arrival city"
+                    isSearchable
                     className="react-select-container"
                     classNamePrefix="react-select"
                   />
+                </div>
+
+                <div className="field-group">
+                  <label htmlFor="depart-date">
+                    Departure Date
+                    <span className="required-indicator" aria-hidden="true">*</span>
+                    <span className="sr-only">Required</span>
+                  </label>
+                  <input
+                    type="date"
+                    id="depart-date"
+                    value={departDate}
+                    onChange={(e) => setDepartDate(e.target.value)}
+                    min={new Date().toISOString().split('T')[0]}
+                    required
+                    aria-required="true"
+                    className={errorFields.includes('depart-date') ? 'error' : ''}
+                    aria-invalid={errorFields.includes('depart-date')}
+                    aria-describedby={errorFields.includes('depart-date') ? 'depart-date-error' : undefined}
+                  />
+                  {errorFields.includes('depart-date') && (
+                    <div id="depart-date-error" className="error-message" role="alert">
+                      Please select a departure date
+                    </div>
+                  )}
+                </div>
+
+                <div className="field-group">
+                  <label htmlFor="return-date">Return Date</label>
+                  <input
+                    type="date"
+                    id="return-date"
+                    value={returnDate}
+                    onChange={(e) => setReturnDate(e.target.value)}
+                    min={departDate || new Date().toISOString().split('T')[0]}
+                    aria-required="false"
+                  />
+                </div>
+
+                <div className="field-group">
+                  <label id="cabin-label" htmlFor="cabin-select">Cabin Class</label>
+                  <Select
+                    id="cabin-select"
+                    aria-labelledby="cabin-label"
+                    value={cabin}
+                    onChange={setCabin}
+                    options={cabinOptions}
+                    className="react-select-container"
+                    classNamePrefix="react-select"
+                  />
+                </div>
+
+                <div className="field-group">
+                  <label htmlFor="passengers">Passengers</label>
+                  <input
+                    type="number"
+                    id="passengers"
+                    value={passengers}
+                    onChange={(e) => setPassengers(Math.max(1, Math.min(9, parseInt(e.target.value) || 1)))}
+                    min="1"
+                    max="9"
+                    required
+                    aria-required="true"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setShowAdvancedOptions(!showAdvancedOptions);
+                  }
+                }}
+                className="advanced-options-toggle"
+                aria-expanded={showAdvancedOptions}
+                aria-controls="advanced-options"
+                tabIndex={0}
+              >
+                <FaFilter aria-hidden="true" />
+                Advanced Options
+                {showAdvancedOptions ? <FaChevronUp aria-hidden="true" /> : <FaChevronDown aria-hidden="true" />}
+              </button>
+
+              {showAdvancedOptions && (
+                <div id="advanced-options" className="advanced-options" role="region" aria-label="Advanced Search Options">
+                  <div className="field-group">
+                    <label className="checkbox-label">
+                      <input
+                        type="checkbox"
+                        checked={directFlightsOnly}
+                        onChange={(e) => setDirectFlightsOnly(e.target.checked)}
+                        aria-label="Direct flights only"
+                      />
+                      Direct flights only
+                    </label>
+                  </div>
+
+                  <div className="field-group">
+                    <label id="preferred-airlines-label" htmlFor="preferred-airlines">Preferred Airlines</label>
+                    <Select
+                      id="preferred-airlines"
+                      aria-labelledby="preferred-airlines-label"
+                      isMulti
+                      value={preferredAirlines}
+                      onChange={setPreferredAirlines}
+                      options={popularAirlines}
+                      className="react-select-container"
+                      classNamePrefix="react-select"
+                      placeholder="Select preferred airlines"
+                    />
+                  </div>
+
+                  <div className="field-group">
+                    <label id="avoided-airlines-label" htmlFor="avoided-airlines">Airlines to Avoid</label>
+                    <Select
+                      id="avoided-airlines"
+                      aria-labelledby="avoided-airlines-label"
+                      isMulti
+                      value={avoidedAirlines}
+                      onChange={setAvoidedAirlines}
+                      options={popularAirlines}
+                      className="react-select-container"
+                      classNamePrefix="react-select"
+                      placeholder="Select airlines to avoid"
+                    />
+                  </div>
+
+                  <div className="field-group">
+                    <label htmlFor="travel-goal">Travel Goal/Preferences</label>
+                    <textarea
+                      id="travel-goal"
+                      value={travelGoal}
+                      onChange={(e) => setTravelGoal(e.target.value)}
+                      placeholder="e.g., Maximize comfort, minimize connections, etc."
+                      aria-label="Enter your travel preferences or goals"
+                    />
+                  </div>
                 </div>
               )}
-               {/* Add Hotel Category dropdown if needed */}
-              {/* {searchType === 'hotel' && ( ... )} */}
 
+              {validationError && (
+                <div role="alert" className="error-message">
+                  <FaInfoCircle aria-hidden="true" /> {validationError}
+                </div>
+              )}
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {searchType === 'flight' ? 'Passengers' : 'Rooms'}
-                </label>
-                {/* Using select element for passenger count */}
-                <select
-                  className="border rounded-md p-2 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  value={passengers}
-                  onChange={e => setPassengers(parseInt(e.target.value))}
+              <div className="mt-6">
+                <button
+                  type="submit"
+                  className="search-button"
+                  disabled={loading}
+                  aria-busy={loading}
+                  aria-label={loading ? 'Searching for awards' : 'Search for awards'}
                 >
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
-                    <option key={num} value={num}>{num}</option>
-                  ))}
-                </select>
+                  {loading ? (
+                    <>
+                      <FaSpinner className="spinner" aria-hidden="true" />
+                      <span aria-hidden="true">Searching...</span>
+                      <span className="sr-only">Searching for awards</span>
+                    </>
+                  ) : (
+                    <>
+                      <FaSearch aria-hidden="true" />
+                      <span aria-hidden="true">Search Awards</span>
+                      <span className="sr-only">Search for award availability</span>
+                    </>
+                  )}
+                </button>
               </div>
             </div>
-
-            {/* Travel Goal */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Travel Goal (optional)
-              </label>
-              <input
-                type="text"
-                className="border rounded-md p-2 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="E.g., 'Luxury honeymoon', 'Family reunion', 'Business trip'"
-                value={travelGoal}
-                onChange={e => setTravelGoal(e.target.value)}
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Helps personalize recommendations
-              </p>
-            </div>
-
-            {/* Advanced Options Toggle */}
-            <div>
-              <button
-                type="button" // Added type="button"
-                className="text-blue-600 text-sm flex items-center hover:underline"
-                onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
-              >
-                <FaFilter className="mr-2" />
-                {showAdvancedOptions ? 'Hide' : 'Show'} Advanced Options
-                 {showAdvancedOptions ? <FaChevronUp className="ml-2 text-xs" /> : <FaChevronDown className="ml-2 text-xs" />}
-              </button>
-            </div>
-
-            {/* Advanced Options (Flight Only for now) */}
-            {showAdvancedOptions && searchType === 'flight' && (
-              <div className="bg-gray-50 p-4 rounded-lg space-y-4">
-                <div>
-                  <label className="flex items-center space-x-2 text-sm text-gray-700"> {/* Combined label and span */}
-                    <input
-                      type="checkbox"
-                      checked={directFlightsOnly}
-                      onChange={e => setDirectFlightsOnly(e.target.checked)}
-                      className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
-                    />
-                    <span>Only show options for direct flights</span>
-                  </label>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Preferred Airlines (optional)
-                  </label>
-                  {/* Using react-select for multi-select dropdown */}
-                  <Select
-                    options={popularAirlines}
-                    isMulti // Allow multiple selections
-                    placeholder="Select preferred airlines..."
-                    onChange={setPreferredAirlines}
-                    value={preferredAirlines} // Controlled component
-                    className="react-select-container"
-                    classNamePrefix="react-select"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Airlines to Avoid (optional)
-                  </label>
-                  <Select
-                    options={popularAirlines}
-                    isMulti
-                    placeholder="Select airlines to avoid..."
-                    onChange={setAvoidedAirlines}
-                    value={avoidedAirlines}
-                    className="react-select-container"
-                    classNamePrefix="react-select"
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Points Value Estimator / Hint */}
-             {/* Show estimation hint if enough basic info is provided */}
-             {(searchType === 'flight' && origin && destination && cabin && passengers > 0) ||
-              (searchType === 'hotel' && destination && departDate && returnDate && passengers > 0 && new Date(departDate) < new Date(returnDate)) ? (
-                 <div className="bg-blue-50 p-4 rounded-lg">
-                     <div className="flex items-start">
-                         <FaInfoCircle className="text-blue-600 mt-1 mr-2 flex-shrink-0" />
-                         <div>
-                             <h3 className="text-sm font-medium text-blue-800">Estimated Cash Value</h3>
-                             {/* Display estimated cash value based on search type */}
-                             {searchType === 'flight' ? (
-                                <p className="text-sm text-blue-700 mt-1">
-                                    The estimated cash cost for {passengers} passenger{passengers > 1 ? 's' : ''} flying {cabin?.label || 'Economy'} from {origin?.label || origin?.value} to {destination?.label || destination?.value} around your dates is approximately: <span className="font-semibold">{formatCurrency(estimatedCashPrice())}</span>
-                                </p>
-                             ) : ( // Hotel estimate
-                                <p className="text-sm text-blue-700 mt-1">
-                                     The estimated cash cost for {passengers} room{passengers > 1 ? 's' : ''} for {Math.max(1, (new Date(returnDate) - new Date(departDate)) / (1000 * 60 * 60 * 24))} night{Math.max(1, (new Date(returnDate) - new Date(departDate)) / (1000 * 60 * 60 * 24)) > 1 ? 's' : ''} in {destination?.label || destination?.value} is approximately: <span className="font-semibold">{formatCurrency(estimatedCashPrice())}</span>
-                                </p>
-                             )}
-
-                             {/* Add hints about potential sweet spots based on search criteria */}
-                             {/* Note: These hints are basic heuristics, the actual sweet spot match happens in the calculator */}
-                             {searchType === 'flight' && (cabin?.value === 'first' || cabin?.value === 'business') && (destination?.value?.includes('HND') || destination?.value?.includes('NRT')) && (programs.some(p => p.name === 'Virgin Atlantic Flying Club' || p.name === 'American Express Membership Rewards')) && (
-                                 <p className="text-xs text-blue-600 mt-1">✨ This route/cabin may qualify for the high-value ANA premium cabin sweet spot via Virgin Atlantic.</p>
-                             )}
-                              {searchType === 'flight' && (cabin?.value === 'first' || cabin?.value === 'business') && (destination?.value?.includes('HKG') || destination?.value?.includes('SIN')) && programs.some(p => p.name === 'Alaska Airlines Mileage Plan') && (
-                                 <p className="text-xs text-blue-600 mt-1">✨ Check for the Cathay Pacific premium cabin sweet spot via Alaska Mileage Plan.</p>
-                             )}
-                              {searchType === 'hotel' && (cabin?.value === 'luxury' || cabin?.value === 'premium' || cabin?.value === 'standard') && programs.some(p => p.name === 'World of Hyatt') && (
-                                 <p className="text-xs text-blue-600 mt-1">✨ Hyatt points can offer excellent value at luxury properties.</p>
-                             )}
-                         </div>
-                     </div>
-                 </div>
-             ) : null}
-
-
-            {/* Search Button */}
-            <div className="mt-6">
-              <button
-                type="submit" // Set type to submit to trigger form submission
-                disabled={loading || programs.length === 0} // Disable if loading or no programs added
-                className="w-full bg-blue-600 text-white py-3 px-4 rounded-md font-medium flex items-center justify-center disabled:bg-blue-300 disabled:cursor-not-allowed hover:bg-blue-700"
-              >
-                {loading ? (
-                  <>
-                    <FaSpinner className="animate-spin mr-2" />
-                    Calculating Best Redemptions...
-                  </>
-                ) : (
-                  <>
-                    <FaSearch className="mr-2" />
-                    Find Best Redemptions
-                  </>
-                )}
-              </button>
-            </div>
-          </form> {/* Closing form tag */}
+          </div>
         </div>
-      </div>
 
-      {/* No programs warning */}
-      {programs.length === 0 && (
-        <div className="mt-4 bg-amber-50 border border-amber-200 p-4 rounded-md text-amber-700">
-          <p className="font-medium">You haven't added any loyalty programs yet.</p>
-          <p className="mt-1 text-sm">Add your programs to get accurate redemption recommendations.</p>
-          <button
-            type="button" // Added type="button"
-            className="mt-2 text-blue-600 font-medium hover:underline"
-            onClick={() => navigate('/connect')}
+        {programs.length === 0 && (
+          <div 
+            role="alert" 
+            className="mt-4 bg-amber-50 border border-amber-200 p-4 rounded-md text-amber-700"
+            aria-live="polite"
           >
-            Add Programs Now
-          </button>
-        </div>
-      )}
-    </div>
+            <p className="font-medium">You haven&apos;t added any loyalty programs yet.</p>
+            <p className="mt-1 text-sm">Add your programs to get accurate redemption recommendations.</p>
+            <button
+              type="button"
+              className="mt-2 text-blue-600 font-medium hover:underline"
+              onClick={() => navigate('/connect')}
+              aria-label="Go to program connection page"
+            >
+              Connect Your Programs →
+            </button>
+          </div>
+        )}
+
+        {/* Estimated Value Section */}
+        {(searchType === 'flight' && origin && destination && cabin && passengers > 0) ||
+         (searchType === 'hotel' && destination && departDate && returnDate && passengers > 0 && new Date(departDate) < new Date(returnDate)) ? (
+          <div 
+            className="bg-blue-50 p-4 rounded-lg"
+            role="region"
+            aria-label="Estimated Value Information"
+            aria-live="polite"
+          >
+            <div className="flex items-start">
+              <FaInfoCircle className="text-blue-600 mt-1 mr-2 flex-shrink-0" aria-hidden="true" />
+              <div>
+                <h3 className="text-sm font-medium text-blue-800">Estimated Cash Value</h3>
+                {searchType === 'flight' ? (
+                  <p className="text-sm text-blue-700 mt-1">
+                    The estimated cash cost for {passengers} passenger{passengers > 1 ? 's' : ''} flying {cabin?.label || 'Economy'} from {origin?.label || origin?.value} to {destination?.label || destination?.value} around your dates is approximately: <span className="font-semibold" aria-label="Estimated cost">{formatCurrency(estimatedCashPrice())}</span>
+                  </p>
+                ) : (
+                  <p className="text-sm text-blue-700 mt-1">
+                    The estimated cash cost for {passengers} room{passengers > 1 ? 's' : ''} for {Math.max(1, (new Date(returnDate) - new Date(departDate)) / (1000 * 60 * 60 * 24))} night{Math.max(1, (new Date(returnDate) - new Date(departDate)) / (1000 * 60 * 60 * 24)) > 1 ? 's' : ''} in {destination?.label || destination?.value} is approximately: <span className="font-semibold" aria-label="Estimated cost">{formatCurrency(estimatedCashPrice())}</span>
+                  </p>
+                )}
+
+                {/* Sweet Spot Hints */}
+                {searchType === 'flight' && (cabin?.value === 'first' || cabin?.value === 'business') && 
+                 (destination?.value?.includes('HND') || destination?.value?.includes('NRT')) && 
+                 (programs.some(p => p.name === 'Virgin Atlantic Flying Club' || p.name === 'American Express Membership Rewards')) && (
+                  <p className="text-xs text-blue-600 mt-1" role="note">
+                    ✨ This route/cabin may qualify for the high-value ANA premium cabin sweet spot via Virgin Atlantic.
+                  </p>
+                )}
+                {searchType === 'flight' && (cabin?.value === 'first' || cabin?.value === 'business') && 
+                 (destination?.value?.includes('HKG') || destination?.value?.includes('SIN')) && 
+                 programs.some(p => p.name === 'Alaska Airlines Mileage Plan') && (
+                  <p className="text-xs text-blue-600 mt-1" role="note">
+                    ✨ Check for the Cathay Pacific premium cabin sweet spot via Alaska Mileage Plan.
+                  </p>
+                )}
+                {searchType === 'hotel' && (cabin?.value === 'luxury' || cabin?.value === 'premium' || cabin?.value === 'standard') && 
+                 programs.some(p => p.name === 'World of Hyatt') && (
+                  <p className="text-xs text-blue-600 mt-1" role="note">
+                    ✨ Hyatt points can offer excellent value at luxury properties.
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        ) : null}
+      </div>
+    </form>
   );
 }
